@@ -18,6 +18,7 @@ namespace server.Hubs
         {
             // Générer un code de partie
             string gameId = gameManagerInstance.CreateGame(Context.ConnectionId);
+            gameManagerInstance.AssignPlayerToGame(Context.ConnectionId, gameId);
             await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
             Console.WriteLine($"Partie crée avec le code : {gameId}");
             return gameId;
@@ -30,6 +31,7 @@ namespace server.Hubs
                 await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
                 await Clients.OthersInGroup(gameId).SendAsync("PlayerJoined", Context.ConnectionId);
                 await Clients.Caller.SendAsync("JoinedSuccessfully", gameId);
+                gameManagerInstance.AssignPlayerToGame(Context.ConnectionId, gameId);
                 Console.WriteLine($"Partie rejoint avec le code : {gameId}");
                 return true;
             }

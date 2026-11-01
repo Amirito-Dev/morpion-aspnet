@@ -146,6 +146,14 @@
             statusDisplay.style.color = "green";
         });
 
+        // Ecouter si on a rejoint la salle
+        connection.on("JoinedSuccessfully", (opponentConnectionId) => {
+            codeDisplay.textContent = `Code de la partie : ${codeInput.value}`;
+            statusDisplay.textContent = "Partie rejoint avec succès !"
+            joinInputs.disabled = true;
+            joinInputs.style.display = "none";
+        });
+
         // Démarrer la connexion
         connection.start()
             .then(() => {
@@ -173,15 +181,10 @@
         btnJoin.addEventListener("click", async () => {
             try{
                 res = await connection.invoke("JoinGame", codeInput.value);
-                if(res){
-                    codeDisplay.textContent = `Code de la partie : ${codeInput.value}`;
-                    statusDisplay.textContent = "Partie rejoint avec succès !"
-                    joinInputs.disabled = true;
-                    joinInputs.style.display = "none";
-                }else{
-                    statusDisplay.textContent = `Aucune partie avec le code ${codeInput.value.toUpperCase()} trouvée`
+                if(!res)
+                {
+                    statusDisplay.textContent = `Aucune partie avec le code ${codeInput.value.toUpperCase()} trouvée`;
                 }
-
             } catch (err) {
                 console.error("Erreur lors du join :", err);
             }

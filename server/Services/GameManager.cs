@@ -7,6 +7,8 @@ namespace server.Services
     {
         // Lier un id (string) à une partie
         ConcurrentDictionary<string, TicTacToeGame> games = new ConcurrentDictionary<string, TicTacToeGame>();
+        // Liaison connexionId - gameId
+        ConcurrentDictionary<string, string> gamePlayers = new ConcurrentDictionary<string, string>();
 
         /// <summary>
         /// Créer une partie
@@ -33,6 +35,11 @@ namespace server.Services
             }
 
             return false;
+        }
+
+        public void AssignPlayerToGame(string playerId, string gameId)
+        {
+            gamePlayers.TryAdd(playerId, gameId);
         }
 
     }
