@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Créer une partie</title>
+    <!-- SDK client SignalR officiel via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        padding: 40px 20px;
+        text-align: center;
+        background-color: #0f172a;
+        color: #f8fafc;
+    }
+
+    #join-inputs {
+        border: none;
+        padding: 0;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        max-width: 320px;
+    }
+
+    /* Champ de saisie du code */
+    #code-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 16px;
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        text-align: center;
+        background: #1e293b;
+        color: #f8fafc;
+        border: 2px solid #334155;
+        border-radius: 8px;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #code-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+
+    #code-input::placeholder {
+        letter-spacing: normal;
+        font-weight: 400;
+        font-size: 14px;
+        color: #64748b;
+    }
+
+    /* Style général des boutons */
+    button {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 15px;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.2s, transform 0.05s, opacity 0.2s;
+    }
+
+    button:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+
+    /* Bouton principal (Créer) */
+    #btn-create {
+        background-color: #2563eb;
+        color: #ffffff;
+    }
+
+    #btn-create:hover:not(:disabled) {
+        background-color: #1d4ed8;
+    }
+
+    /* Bouton secondaire (Rejoindre) */
+    #btn-join {
+        background-color: #334155;
+        color: #f1f5f9;
+    }
+
+    #btn-join:hover:not(:disabled) {
+        background-color: #475569;
+    }
+
+    /* État désactivé / connexion */
+    button:disabled,
+    fieldset:disabled button,
+    fieldset:disabled input {
+        opacity: 0.5;
+        cursor: not-allowed;
+        filter: grayscale(0.2);
+    }
+
+    #game-code {
+        margin-top: 24px;
+        font-size: 22px;
+        font-weight: 700;
+        color: #60a5fa;
+        letter-spacing: 2px;
+    }
+
+    #status {
+        margin-top: 8px;
+        font-size: 14px;
+        color: #94a3b8;
+    }
+</style>
+</head>
+<body>
+    <fieldset id="join-inputs">
+        <input type="text" id="code-input" placeholder="CODE DE LA PARTIE" maxlength="6" autocomplete="off" spellcheck="false">
+        <button id="btn-join">Rejoindre une partie</button>
+        <button id="btn-create">Connexion au serveur...</button>
+    </fieldset>
+    <div id="game-code"></div>
+    <div id="status"></div>
+
+    <script>
+        const HUB_URL = "http://localhost:5065/gameHub";
+
+        const btnCreate = document.getElementById("btn-create");
+        const btnJoin = document.getElementById("btn-join");
+        const codeDisplay = document.getElementById("game-code");
+        const statusDisplay = document.getElementById("status");
+        const codeInput = document.getElementById("code-input");
+        const joinInputs = document.getElementById("join-inputs");
+
+        // Initialiser la connexion
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(HUB_URL)
+            .withAutomaticReconnect()
+            .build();
+
+        // Écouter si un adversaire rejoint la salle créée
+        connection.on("PlayerJoined", (opponentConnectionId) => {
+            statusDisplay.textContent = `Un adversaire s'est connecté ! (${opponentConnectionId})`;
+            statusDisplay.style.color = "green";
+        });
+
+        // Démarrer la connexion
+        connection.start()
+            .then(() => {
+                btnCreate.textContent = "Créer une partie";
+            })
+            .catch(err => {
+                console.error("Erreur de connexion SignalR :", err);
+                btnCreate.textContent = "Erreur de connexion";
+            });
+
+        // Appel de CreateGame lors du clic
+        btnCreate.addEventListener("click", async () => {
+            try {
+                // invoke retourne directement le string renvoyé par le Hub C#
+                const gameId = await connection.invoke("CreateGame");
+                codeDisplay.textContent = `Code de la partie : ${gameId}`;
+                statusDisplay.textContent = "En attente d'un adversaire...";
+                joinInputs.disabled = true;
+                joinInputs.style.display = "none";
+            } catch (err) {
+                console.error("Erreur lors de la création :", err);
+            }
+        });
+
+        btnJoin.addEventListener("click", async () => {
+            try{
+                await connection.invoke("JoinGame", codeInput.value);
+                codeDisplay.textContent = `Code de la partie : ${codeInput.value}`;
+                statusDisplay.textContent = "Partie rejoint avec succès !"
+                joinInputs.disabled = true;
+                joinInputs.style.display = "none";
+            } catch (err) {
+                console.error("Erreur lors du join :", err);
+            }
+        });
+    </script>
+</body>
+</html>
