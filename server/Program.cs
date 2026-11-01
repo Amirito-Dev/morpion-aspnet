@@ -1,3 +1,5 @@
+using server.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 var corsPolicy = "AllowFrontend";
@@ -19,6 +21,7 @@ builder.Services.AddSignalR();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<IGameManager, GameManager>();
 
 var app = builder.Build();
 

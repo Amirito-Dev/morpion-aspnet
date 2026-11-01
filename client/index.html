@@ -172,11 +172,16 @@
 
         btnJoin.addEventListener("click", async () => {
             try{
-                await connection.invoke("JoinGame", codeInput.value);
-                codeDisplay.textContent = `Code de la partie : ${codeInput.value}`;
-                statusDisplay.textContent = "Partie rejoint avec succès !"
-                joinInputs.disabled = true;
-                joinInputs.style.display = "none";
+                res = await connection.invoke("JoinGame", codeInput.value);
+                if(res){
+                    codeDisplay.textContent = `Code de la partie : ${codeInput.value}`;
+                    statusDisplay.textContent = "Partie rejoint avec succès !"
+                    joinInputs.disabled = true;
+                    joinInputs.style.display = "none";
+                }else{
+                    statusDisplay.textContent = `Aucune partie avec le code ${codeInput.value.toUpperCase()} trouvée`
+                }
+
             } catch (err) {
                 console.error("Erreur lors du join :", err);
             }
