@@ -53,8 +53,16 @@ namespace server.Hubs
                 // On dit à tout le monde quelle case vient d'être remplie
                 await Clients.Group(game.GameId).SendAsync("TurnPlayed", new { cell = cellIndex, symbol = symbol });
 
-                // On dit à tout le monde à qui c'est le tour maintenant
-                await Clients.Group(game.GameId).SendAsync("UpdateTurn", game.CurrentTurn);
+                if (game.IsGameOver)
+                {
+                    await Clients.Group(game.GameId).SendAsync("GameOver", game.Winner);
+
+                }
+                else{
+                    // On dit à tout le monde à qui c'est le tour maintenant
+                    await Clients.Group(game.GameId).SendAsync("UpdateTurn", game.CurrentTurn);
+                }
+
             }
         }
     }
