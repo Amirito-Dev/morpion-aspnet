@@ -176,6 +176,7 @@
     </fieldset>
 
     <fieldset id="game-board">
+        <h1 id="winner-text"></h1>
         <div id="turn-indicator">En attente des joueurs...</div>
         <div class="grid">
             <button class="cell" data-index="0"></button>
@@ -202,6 +203,7 @@
         const gameInfos = document.getElementById("game-infos");
         const gameBoard = document.getElementById("game-board");
         const turnIndicator = document.getElementById("turn-indicator");
+        const winnerText = document.getElementById("winner-text");
         const cells = document.querySelectorAll(".cell");
 
         // Initialiser la connexion
@@ -249,6 +251,19 @@
         connection.on("TurnPlayed", (data) => {
             const cell = document.querySelector(`.cell[data-index="${data.cell}"]`);
             cell.textContent = data.symbol;
+        });
+
+        connection.on("GameOver", (data) => {
+            console.log("Game over, winner : " + data + " my symbol : " + mySymbol);
+            if(data == "Draw"){
+                winnerText.textContent = "Egalité !"
+            }else{
+                if(data == mySymbol){
+                    winnerText.textContent = "Vous avez gagné !";
+                }else{
+                    winnerText.textContent = "Vous avez perdu !";
+                }
+            }
         });
 
         // Démarrer la connexion
