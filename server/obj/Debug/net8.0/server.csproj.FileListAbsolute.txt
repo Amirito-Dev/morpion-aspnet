@@ -103,3 +103,4 @@ C:\Users\Amir\Documents\hepia\morpion-aspnet\server\obj\Debug\net8.0\refint\serv
 C:\Users\Amir\Documents\hepia\morpion-aspnet\server\obj\Debug\net8.0\server.pdb
 C:\Users\Amir\Documents\hepia\morpion-aspnet\server\obj\Debug\net8.0\server.genruntimeconfig.cache
 C:\Users\Amir\Documents\hepia\morpion-aspnet\server\obj\Debug\net8.0\ref\server.dll
+C:\Users\Amir\Documents\hepia\morpion-aspnet\server\bin\Debug\net8.0\server.staticwebassets.runtime.json

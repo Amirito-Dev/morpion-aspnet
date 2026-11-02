@@ -27,7 +27,11 @@ var app = builder.Build();
 app.UseRouting();
 
 app.UseCors(corsPolicy);
+// Cherche index.html dans wwwroot
+app.UseDefaultFiles();
+// Autoriser le serveur à distribuer de l'html
+app.UseStaticFiles();
 
-app.MapHub<server.Hubs.GameHub>("/gameHub");
+app.MapHub<server.Hubs.GameHub>("/tictactoe");
 
 app.Run();
