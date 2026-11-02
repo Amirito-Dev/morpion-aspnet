@@ -3,44 +3,41 @@ using server.Models;
 
 namespace server.Services
 {
-    public class GameManager : IGameManager
+   public class GameManager : IGameManager
     {
-        // Lier un id (string) à une partie
-        ConcurrentDictionary<string, TicTacToeGame> games = new ConcurrentDictionary<string, TicTacToeGame>();
-        // Liaison connexionId - gameId
-        ConcurrentDictionary<string, string> gamePlayers = new ConcurrentDictionary<string, string>();
+        private ConcurrentDictionary<string, TicTacToeGame> games = new();
+        private ConcurrentDictionary<string, string> gamePlayers = new();
 
-        /// <summary>
-        /// Créer une partie
-        /// </summary>
-        /// <param name="hostId"></param>
-        /// <returns>Le gameId de la partie crée</returns>
         public string CreateGame(string hostId)
         {
             string gameId = Guid.NewGuid().ToString("N")[..6].ToUpper();
             games.TryAdd(gameId, new TicTacToeGame(hostId, gameId));
+            gamePlayers.TryAdd(hostId, gameId);
             return gameId;
         }
 
-        /// <summary>
-        /// Rejoint une partie
-        /// </summary>
-        /// <param name="gameId">gameId de la partie à rejoindre</param>
-        /// <returns>True si on veut rejoindre une partie existante, sinon false</returns>
-        public bool JoinGame(string gameId)
+        public bool JoinGame(string gameId, string playerId)
         {   
-            if (games.ContainsKey(gameId))
+            if (games.TryGetValue(gameId, out var game))
             {
+                if (game.OpponentId != null) return false; // La partie est déjà pleine
+
+                game.OpponentId = playerId;
+                gamePlayers.TryAdd(playerId, gameId);
+                game.StartGame();
                 return true;
             }
-
             return false;
         }
 
-        public void AssignPlayerToGame(string playerId, string gameId)
+        public TicTacToeGame? GetGameByPlayerId(string playerId)
         {
-            gamePlayers.TryAdd(playerId, gameId);
+            if (gamePlayers.TryGetValue(playerId, out string? gameId))
+            {
+                games.TryGetValue(gameId, out var game);
+                return game;
+            }
+            return null;
         }
-
     }
 }

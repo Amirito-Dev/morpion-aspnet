@@ -113,6 +113,55 @@
         font-size: 14px;
         color: #94a3b8;
     }
+
+    /* Styles ajoutés pour le plateau */
+    #game-board {
+        border: none;
+        padding: 0;
+        margin: 30px auto 0 auto;
+        display: none; /* Rendu visible en flex quand la partie commence */
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 90px);
+        grid-gap: 10px;
+        justify-content: center;
+    }
+
+    .cell {
+        width: 90px;
+        height: 90px;
+        font-size: 38px;
+        font-weight: 800;
+        background-color: #1e293b;
+        color: #f8fafc;
+        border: 2px solid #334155;
+        border-radius: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.15s, border-color 0.15s;
+    }
+
+    .cell:hover:not(:disabled) {
+        background-color: #334155;
+        border-color: #3b82f6;
+    }
+
+    .cell:disabled {
+        cursor: not-allowed;
+    }
+
+    #turn-indicator {
+        font-size: 16px;
+        font-weight: 600;
+        color: #cbd5e1;
+    }
 </style>
 </head>
 <body>
@@ -121,8 +170,25 @@
         <button id="btn-join">Rejoindre une partie</button>
         <button id="btn-create">Connexion au serveur...</button>
     </fieldset>
-    <div id="game-code"></div>
-    <div id="status"></div>
+    <fieldset id="game-infos" style="border: 0;">
+        <div id="game-code"></div>
+        <div id="status"></div>
+    </fieldset>
+
+    <fieldset id="game-board">
+        <div id="turn-indicator">En attente des joueurs...</div>
+        <div class="grid">
+            <button class="cell" data-index="0"></button>
+            <button class="cell" data-index="1"></button>
+            <button class="cell" data-index="2"></button>
+            <button class="cell" data-index="3"></button>
+            <button class="cell" data-index="4"></button>
+            <button class="cell" data-index="5"></button>
+            <button class="cell" data-index="6"></button>
+            <button class="cell" data-index="7"></button>
+            <button class="cell" data-index="8"></button>
+        </div>
+    </fieldset>
 
     <script>
         const HUB_URL = "http://localhost:5065/gameHub";
@@ -133,6 +199,10 @@
         const statusDisplay = document.getElementById("status");
         const codeInput = document.getElementById("code-input");
         const joinInputs = document.getElementById("join-inputs");
+        const gameInfos = document.getElementById("game-infos");
+        const gameBoard = document.getElementById("game-board");
+        const turnIndicator = document.getElementById("turn-indicator");
+        const cells = document.querySelectorAll(".cell");
 
         // Initialiser la connexion
         const connection = new signalR.HubConnectionBuilder()
@@ -146,12 +216,39 @@
             statusDisplay.style.color = "green";
         });
 
-        // Ecouter si on a rejoint la salle
-        connection.on("JoinedSuccessfully", (opponentConnectionId) => {
-            codeDisplay.textContent = `Code de la partie : ${codeInput.value}`;
-            statusDisplay.textContent = "Partie rejoint avec succès !"
-            joinInputs.disabled = true;
+        let mySymbol = null;
+        let isMyTurn = false;
+        let gameId = null;
+
+        connection.on("GameStarted", (data) => {
+            gameBoard.style.display = "flex";
+            gameInfos.style.display = "none";
             joinInputs.style.display = "none";
+
+            mySymbol = data.symbol;
+            isMyTurn = data.yourTurn;
+            gameId = data.id;
+
+            if(isMyTurn){
+                turnIndicator.textContent = "C'est à vous de jouer.";
+            }else{
+                turnIndicator.textContent = "Tour de l'adversaire en cours.";
+            }
+        });
+
+        connection.on("UpdateTurn", (currentTurnId) => {
+            if (connection.connectionId === currentTurnId) {
+                turnIndicator.textContent = "C'est à votre tour !";
+                turnIndicator.style.color = "green";
+            } else {
+                turnIndicator.textContent = "Au tour de l'adversaire...";
+                turnIndicator.style.color = "gray";
+            }
+        });
+
+        connection.on("TurnPlayed", (data) => {
+            const cell = document.querySelector(`.cell[data-index="${data.cell}"]`);
+            cell.textContent = data.symbol;
         });
 
         // Démarrer la connexion
@@ -173,6 +270,7 @@
                 statusDisplay.textContent = "En attente d'un adversaire...";
                 joinInputs.disabled = true;
                 joinInputs.style.display = "none";
+                console.log("Partie créer avec succès");
             } catch (err) {
                 console.error("Erreur lors de la création :", err);
             }
@@ -188,6 +286,18 @@
             } catch (err) {
                 console.error("Erreur lors du join :", err);
             }
+        });
+
+        // Gestion du clic sur les cases du Morpion
+        cells.forEach(cell => {
+            cell.addEventListener("click", async () => {
+                const cellIndex = parseInt(cell.getAttribute("data-index"), 10);
+                try {
+                    await connection.invoke("PlayTurn", cellIndex);
+                } catch (err) {
+                    console.error("Erreur lors du coup :", err);
+                }
+            });
         });
     </script>
 </body>

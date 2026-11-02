@@ -1,11 +1,11 @@
+using server.Models;
+
 namespace server.Services
 {
     public interface IGameManager
     {
-        // Créer une partie et obtenir un gameId
-        string CreateGame(string hostId);
-        void AssignPlayerToGame(string playerId, string gameId);
-        // Essayer de rejoindre une partie via un gameId
-        bool JoinGame(string gameId);
+        public string CreateGame(string hostId);
+        public bool JoinGame(string gameId, string playerId);
+        public TicTacToeGame? GetGameByPlayerId(string playerId);
     }
 }

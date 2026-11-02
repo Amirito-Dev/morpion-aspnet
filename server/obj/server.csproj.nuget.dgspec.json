@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Amir\\Documents\\hepia\\morpion-aspnet\\server\\server.csproj": {}
+    "/Users/amirito/Documents/morpion-aspnet/server/server.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Amir\\Documents\\hepia\\morpion-aspnet\\server\\server.csproj": {
+    "/Users/amirito/Documents/morpion-aspnet/server/server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Amir\\Documents\\hepia\\morpion-aspnet\\server\\server.csproj",
+        "projectUniqueName": "/Users/amirito/Documents/morpion-aspnet/server/server.csproj",
         "projectName": "server",
-        "projectPath": "C:\\Users\\Amir\\Documents\\hepia\\morpion-aspnet\\server\\server.csproj",
-        "packagesPath": "C:\\Users\\Amir\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Amir\\Documents\\hepia\\morpion-aspnet\\server\\obj\\",
+        "projectPath": "/Users/amirito/Documents/morpion-aspnet/server/server.csproj",
+        "packagesPath": "/Users/amirito/.nuget/packages/",
+        "outputPath": "/Users/amirito/Documents/morpion-aspnet/server/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Amir\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/Users/amirito/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -24,6 +24,7 @@
         },
         "frameworks": {
           "net8.0": {
+            "framework": "net8.0",
             "targetAlias": "net8.0",
             "projectReferences": {}
           }
@@ -37,10 +38,12 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "10.0.400"
       },
       "frameworks": {
         "net8.0": {
+          "framework": "net8.0",
           "targetAlias": "net8.0",
           "dependencies": {
             "Microsoft.AspNetCore.OpenApi": {
@@ -63,6 +66,20 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.31, 8.0.31]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.osx-arm64",
+              "version": "[8.0.31, 8.0.31]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.31, 8.0.31]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -71,7 +88,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.427/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.401/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

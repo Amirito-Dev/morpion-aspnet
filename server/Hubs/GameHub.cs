@@ -1,43 +1,61 @@
+using System.Text.RegularExpressions;
 using System.Xml;
 using Microsoft.AspNetCore.SignalR;
+using server.Models;
 using server.Services;
 
 namespace server.Hubs
 {
     public class GameHub : Hub
     {
+        private readonly IGameManager _gameManager;
 
-        private readonly IGameManager gameManagerInstance;
-
-        public GameHub(IGameManager gameManagerInstance)
+        public GameHub(IGameManager gameManager)
         {
-            this.gameManagerInstance = gameManagerInstance;
+            _gameManager = gameManager;
         }
 
         public async Task<string> CreateGame()
         {
-            // Générer un code de partie
-            string gameId = gameManagerInstance.CreateGame(Context.ConnectionId);
-            gameManagerInstance.AssignPlayerToGame(Context.ConnectionId, gameId);
+            string gameId = _gameManager.CreateGame(Context.ConnectionId);
             await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
-            Console.WriteLine($"Partie crée avec le code : {gameId}");
             return gameId;
         }
 
         public async Task<bool> JoinGame(string gameId)
         {
-            if (gameManagerInstance.JoinGame(gameId))
+            if (_gameManager.JoinGame(gameId, Context.ConnectionId))
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
-                await Clients.OthersInGroup(gameId).SendAsync("PlayerJoined", Context.ConnectionId);
-                await Clients.Caller.SendAsync("JoinedSuccessfully", gameId);
-                gameManagerInstance.AssignPlayerToGame(Context.ConnectionId, gameId);
-                Console.WriteLine($"Partie rejoint avec le code : {gameId}");
+                var game = _gameManager.GetGameByPlayerId(Context.ConnectionId);
+
+                // Informer les deux joueurs que la partie commence
+                await Clients.Client(game!.HostId).SendAsync("GameStarted", new { symbol = "X" });
+                await Clients.Client(game.OpponentId!).SendAsync("GameStarted", new { symbol = "O" });
+
+                await Clients.Group(gameId).SendAsync("UpdateTurn", game.CurrentTurn);
+                
                 return true;
             }
-
-            Console.WriteLine("Partie avec le code " + gameId + " non existante");
             return false;
+        }
+
+        public async Task PlayTurn(int cellIndex)
+        {
+            var game = _gameManager.GetGameByPlayerId(Context.ConnectionId);
+            if (game == null) return;
+
+            // Vérifier si le tour est valide
+            if (game.PlayTurn(Context.ConnectionId, cellIndex))
+            {
+                string symbol = (Context.ConnectionId == game.HostId) ? "X" : "O";
+
+                // On dit à tout le monde quelle case vient d'être remplie
+                await Clients.Group(game.GameId).SendAsync("TurnPlayed", new { cell = cellIndex, symbol = symbol });
+
+                // On dit à tout le monde à qui c'est le tour maintenant
+                await Clients.Group(game.GameId).SendAsync("UpdateTurn", game.CurrentTurn);
+            }
         }
     }
 }
