@@ -162,6 +162,113 @@
         font-weight: 600;
         color: #cbd5e1;
     }
+
+    /* --- STYLES DE LA CHATBOX --- */
+    .chat-container {
+        width: 100%;
+        max-width: 320px; /* Aligné sur la taille de la grille et des boutons */
+        height: 350px;
+        background: #1e293b;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid #334155;
+        margin-top: 20px;
+    }
+
+    .chat-header {
+        padding: 12px;
+        background: #111827;
+        color: #f8fafc;
+        font-weight: 600;
+        font-size: 14px;
+        border-bottom: 1px solid #334155;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #22c55e;
+        border-radius: 50%;
+    }
+
+    #chat-messages {
+        flex: 1;
+        padding: 12px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        scroll-behavior: smooth;
+    }
+
+    #chat-messages::-webkit-scrollbar { width: 6px; }
+    #chat-messages::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+    .message {
+        max-width: 85%;
+        padding: 8px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        line-height: 1.4;
+        word-wrap: break-word;
+        text-align: left;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .message.incoming {
+        align-self: flex-start;
+        background-color: #334155;
+        color: #f1f5f9;
+        border-bottom-left-radius: 2px;
+    }
+
+    .message.outgoing {
+        align-self: flex-end;
+        background-color: #2563eb;
+        color: #ffffff;
+        border-bottom-right-radius: 2px;
+    }
+
+    .chat-footer {
+        display: flex;
+        padding: 8px;
+        gap: 8px;
+        background: #111827;
+        border-top: 1px solid #334155;
+    }
+
+    .chat-footer input {
+        flex: 1;
+        padding: 8px 12px;
+        background: #1e293b;
+        border: 1px solid #475569;
+        border-radius: 9999px;
+        color: #fff;
+        outline: none;
+        font-size: 13px;
+    }
+
+    .chat-footer input:focus {
+        border-color: #3b82f6;
+    }
+
+    .chat-footer button {
+        width: auto;
+        padding: 0 14px;
+        border-radius: 9999px;
+        font-size: 13px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
 </head>
 <body>
@@ -189,6 +296,19 @@
             <button class="cell" data-index="7"></button>
             <button class="cell" data-index="8"></button>
         </div>
+        
+        <!-- INTÉGRATION DE LA CHATBOX ICI -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <span class="status-dot"></span>
+                <span>Chat de la partie</span>
+            </div>
+            <div id="chat-messages"></div>
+            <form class="chat-footer" id="chat-form">
+                <input type="text" id="chat-input" placeholder="Message..." autocomplete="off" />
+                <button type="submit" id="btn-send-chat">Envoyer</button>
+            </form>
+        </div>
     </fieldset>
 
     <script>
@@ -206,6 +326,11 @@
         const winnerText = document.getElementById("winner-text");
         const cells = document.querySelectorAll(".cell");
 
+        // Éléments de la chatbox
+        const chatMessages = document.getElementById("chat-messages");
+        const chatForm = document.getElementById("chat-form");
+        const chatInput = document.getElementById("chat-input");
+
         // Initialiser la connexion
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(HUB_URL)
@@ -216,6 +341,7 @@
         connection.on("PlayerJoined", (opponentConnectionId) => {
             statusDisplay.textContent = `Un adversaire s'est connecté ! (${opponentConnectionId})`;
             statusDisplay.style.color = "green";
+            addChatMessage("Un adversaire a rejoint la partie.", "incoming");
         });
 
         let mySymbol = null;
@@ -314,6 +440,39 @@
                 }
             });
         });
+
+        /* --- LOGIQUE DE LA CHATBOX --- */
+        function addChatMessage(text, type = 'outgoing') {
+            const msg = document.createElement("div");
+            msg.className = `message ${type}`;
+            msg.textContent = text;
+            chatMessages.appendChild(msg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Soumission du formulaire de chat
+        chatForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            // Affichage local du message envoyé
+            addChatMessage(text, "outgoing");
+            chatInput.value = "";
+
+            try {
+                console.log("Send message : " + text);
+                await connection.invoke("SendMessage", text);
+            } catch (err) {
+                console.error(err);
+            } 
+             
+        });
+
+        connection.on("ReceiveMessage", (message) => {
+            addChatMessage(message, "incoming");
+        });
+         
     </script>
 </body>
 </html>

@@ -62,8 +62,16 @@ namespace server.Hubs
                     // On dit à tout le monde à qui c'est le tour maintenant
                     await Clients.Group(game.GameId).SendAsync("UpdateTurn", game.CurrentTurn);
                 }
-
             }
+        }
+
+        public async Task SendMessage(string message)
+        {
+            var game = _gameManager.GetGameByPlayerId(Context.ConnectionId);
+            if(game == null) return;
+            string symbol = (Context.ConnectionId == game.HostId) ? "X" : "O";
+            Console.WriteLine("Message : " + message + " sent by user " + symbol);
+            await Clients.OthersInGroup(game.GameId).SendAsync("ReceiveMessage", message);
         }
     }
 }
