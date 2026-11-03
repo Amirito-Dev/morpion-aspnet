@@ -55,14 +55,22 @@ namespace server.Hubs
 
                 if (game.IsGameOver)
                 {
-                    await Clients.Group(game.GameId).SendAsync("GameOver", game.Winner);
-
+                    Console.WriteLine("Winner : " + game.Winner);
+                    await Clients.Group(game.GameId).SendAsync("GameOver", new { winner = game.Winner, hostScore = game.HostScore, opponentScore = game.OpponentScore });
                 }
                 else{
                     // On dit à tout le monde à qui c'est le tour maintenant
                     await Clients.Group(game.GameId).SendAsync("UpdateTurn", game.CurrentTurn);
                 }
             }
+        }
+
+        public async Task RestartGame()
+        {
+            var game = _gameManager.GetGameByPlayerId(Context.ConnectionId);
+            if (game == null || !game.IsGameOver) return;
+            game.RestartGame();
+            await Clients.Group(game.GameId).SendAsync("RestartGame", new {currentTurn = game.CurrentTurn});
         }
 
         public async Task SendMessage(string message)
@@ -72,6 +80,21 @@ namespace server.Hubs
             string symbol = (Context.ConnectionId == game.HostId) ? "X" : "O";
             Console.WriteLine("Message : " + message + " sent by user " + symbol);
             await Clients.OthersInGroup(game.GameId).SendAsync("ReceiveMessage", message);
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            var game = _gameManager.GetGameByPlayerId(Context.ConnectionId);
+            if (game != null)
+            {
+                // Avertir l'adversaire
+                await Clients.OthersInGroup(game.GameId).SendAsync("OpponentDisconnected");
+                
+                // Nettoyer la RAM
+                _gameManager.RemoveGame(game.GameId); 
+            }
+
+            await base.OnDisconnectedAsync(exception);
         }
     }
 }

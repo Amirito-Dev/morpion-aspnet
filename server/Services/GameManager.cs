@@ -20,12 +20,15 @@ namespace server.Services
         {   
             if (games.TryGetValue(gameId, out var game))
             {
-                if (game.OpponentId != null) return false; // La partie est déjà pleine
+                lock (game){
+                    if (game.OpponentId != null) return false; // La partie est déjà pleine
 
-                game.OpponentId = playerId;
-                gamePlayers.TryAdd(playerId, gameId);
-                game.StartGame();
-                return true;
+                    game.OpponentId = playerId;
+                    gamePlayers.TryAdd(playerId, gameId);
+                    game.StartGame();
+                    return true;
+                }
+
             }
             return false;
         }
@@ -38,6 +41,22 @@ namespace server.Services
                 return game;
             }
             return null;
+        }
+
+        public void RemoveGame(string gameId)
+        {
+            // Si la partie existe, on la retire du dictionnaire des parties
+            if (games.TryRemove(gameId, out var game))
+            {
+                // On retire l'hôte du dictionnaire de liaison joueur -> partie
+                gamePlayers.TryRemove(game.HostId, out _);
+
+                // On retire l'adversaire s'il avait déjà rejoint la partie
+                if (game.OpponentId != null)
+                {
+                    gamePlayers.TryRemove(game.OpponentId, out _);
+                }
+            }
         }
     }
 }

@@ -3,7 +3,9 @@ namespace server.Models
     public class TicTacToeGame
     {
         public string HostId { get; private set; }
+        public int HostScore { get; private set; }
         public string? OpponentId { get; set; }
+        public int OpponentScore { get; private set; }
         public string GameId { get; private set; }
         public string CurrentTurn { get; private set; }
         
@@ -11,6 +13,7 @@ namespace server.Models
         public string?[] Board { get; private set; }
         public bool IsGameOver { get; private set; }
         public string? Winner {get; private set; }
+        private string _startingPlayerId;
 
         public TicTacToeGame(string hostId, string gameId)
         {
@@ -18,10 +21,22 @@ namespace server.Models
             GameId = gameId;
             Board = new string?[9];
             CurrentTurn = hostId; // L'hôte commence toujours
+            _startingPlayerId = CurrentTurn;
             IsStarted = false;
         }
 
         public void StartGame() => IsStarted = true;
+        public void RestartGame()
+        {
+            if(!IsGameOver) return;
+            
+            Board = new string?[9];
+            CurrentTurn = _startingPlayerId == HostId ? OpponentId! : HostId;
+            IsGameOver = false;
+            Winner = null;
+        }
+
+        public string GetPlayerSymbolById(string playerId) => (playerId == HostId) ? "X" : "O";
 
         // Retourne true si le coup est valide et false sinon
         public bool PlayTurn(string playerId, int cellIndex)
@@ -30,7 +45,7 @@ namespace server.Models
             if (playerId != CurrentTurn) return false;
             if (cellIndex < 0 || cellIndex > 8 || Board[cellIndex] != null) return false; // Case déjà prise
 
-            string symbol = (playerId == HostId) ? "X" : "O";
+            string symbol = GetPlayerSymbolById(playerId);
             Board[cellIndex] = symbol;
 
             CheckWinOrDraw(symbol);
@@ -59,6 +74,14 @@ namespace server.Models
                 {
                     IsGameOver = true;
                     Winner = symbol;
+                    if(symbol == "X")
+                    {
+                        HostScore += 1;
+                    }
+                    else
+                    {
+                        OpponentScore += 1;
+                    }
                     return;
                 }
             }

@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Créer une partie</title>
-    <!-- SDK client SignalR officiel via CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 <style>
     body {
@@ -25,7 +24,6 @@
         max-width: 320px;
     }
 
-    /* Champ de saisie du code */
     #code-input {
         width: 100%;
         box-sizing: border-box;
@@ -55,7 +53,6 @@
         color: #64748b;
     }
 
-    /* Style général des boutons */
     button {
         width: 100%;
         padding: 12px 20px;
@@ -64,34 +61,19 @@
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        transition: background-color 0.2s, transform 0.05s, opacity 0.2s;
+        transition: background-color 0.2s, transform 0.05s, opacity 0.2s, box-shadow 0.2s;
     }
 
     button:active:not(:disabled) {
         transform: scale(0.98);
     }
 
-    /* Bouton principal (Créer) */
-    #btn-create {
-        background-color: #2563eb;
-        color: #ffffff;
-    }
+    #btn-create { background-color: #2563eb; color: #ffffff; }
+    #btn-create:hover:not(:disabled) { background-color: #1d4ed8; }
 
-    #btn-create:hover:not(:disabled) {
-        background-color: #1d4ed8;
-    }
+    #btn-join { background-color: #334155; color: #f1f5f9; }
+    #btn-join:hover:not(:disabled) { background-color: #475569; }
 
-    /* Bouton secondaire (Rejoindre) */
-    #btn-join {
-        background-color: #334155;
-        color: #f1f5f9;
-    }
-
-    #btn-join:hover:not(:disabled) {
-        background-color: #475569;
-    }
-
-    /* État désactivé / connexion */
     button:disabled,
     fieldset:disabled button,
     fieldset:disabled input {
@@ -114,15 +96,41 @@
         color: #94a3b8;
     }
 
-    /* Styles ajoutés pour le plateau */
     #game-board {
         border: none;
         padding: 0;
         margin: 30px auto 0 auto;
-        display: none; /* Rendu visible en flex quand la partie commence */
+        display: none; 
         flex-direction: column;
         align-items: center;
         gap: 16px;
+    }
+
+    #winner-text {
+        margin: 0;
+        font-size: 28px;
+        color: #f8fafc;
+        min-height: 34px;
+    }
+
+    #score-text {
+        font-size: 15px;
+        font-weight: 500;
+        background: #1e293b;
+        padding: 12px 24px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        color: #cbd5e1;
+        line-height: 1.6;
+        margin: 0 auto 10px auto;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        display: none; /* Masqué tant qu'il n'y a pas de score */
+    }
+
+    #turn-indicator {
+        font-size: 16px;
+        font-weight: 600;
+        color: #cbd5e1;
     }
 
     .grid {
@@ -153,20 +161,32 @@
         border-color: #3b82f6;
     }
 
-    .cell:disabled {
-        cursor: not-allowed;
+    .cell:disabled { cursor: not-allowed; }
+
+    .cell[data-symbol="X"] {
+        color: #ef4444; /* Rouge */
     }
 
-    #turn-indicator {
-        font-size: 16px;
-        font-weight: 600;
-        color: #cbd5e1;
+    .cell[data-symbol="O"] {
+        color: #3b82f6; /* Bleu */
     }
 
-    /* --- STYLES DE LA CHATBOX --- */
+    #restart-button {
+        background-color: #10b981;
+        color: white;
+        margin-top: 10px;
+        padding: 12px 30px;
+        max-width: 200px;
+    }
+
+    #restart-button:hover:not(:disabled) {
+        background-color: #059669;
+    }
+
+    /* Chatbox */
     .chat-container {
         width: 100%;
-        max-width: 320px; /* Aligné sur la taille de la grille et des boutons */
+        max-width: 320px; 
         height: 350px;
         background: #1e293b;
         border-radius: 12px;
@@ -177,7 +197,6 @@
         border: 1px solid #334155;
         margin-top: 20px;
     }
-
     .chat-header {
         padding: 12px;
         background: #111827;
@@ -189,14 +208,7 @@
         align-items: center;
         gap: 8px;
     }
-
-    .status-dot {
-        width: 8px;
-        height: 8px;
-        background-color: #22c55e;
-        border-radius: 50%;
-    }
-
+    .status-dot { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; }
     #chat-messages {
         flex: 1;
         padding: 12px;
@@ -206,10 +218,8 @@
         gap: 8px;
         scroll-behavior: smooth;
     }
-
     #chat-messages::-webkit-scrollbar { width: 6px; }
     #chat-messages::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-
     .message {
         max-width: 85%;
         padding: 8px 12px;
@@ -220,21 +230,8 @@
         text-align: left;
         animation: fadeIn 0.2s ease-out;
     }
-
-    .message.incoming {
-        align-self: flex-start;
-        background-color: #334155;
-        color: #f1f5f9;
-        border-bottom-left-radius: 2px;
-    }
-
-    .message.outgoing {
-        align-self: flex-end;
-        background-color: #2563eb;
-        color: #ffffff;
-        border-bottom-right-radius: 2px;
-    }
-
+    .message.incoming { align-self: flex-start; background-color: #334155; color: #f1f5f9; border-bottom-left-radius: 2px; }
+    .message.outgoing { align-self: flex-end; background-color: #2563eb; color: #ffffff; border-bottom-right-radius: 2px; }
     .chat-footer {
         display: flex;
         padding: 8px;
@@ -242,7 +239,6 @@
         background: #111827;
         border-top: 1px solid #334155;
     }
-
     .chat-footer input {
         flex: 1;
         padding: 8px 12px;
@@ -253,17 +249,8 @@
         outline: none;
         font-size: 13px;
     }
-
-    .chat-footer input:focus {
-        border-color: #3b82f6;
-    }
-
-    .chat-footer button {
-        width: auto;
-        padding: 0 14px;
-        border-radius: 9999px;
-        font-size: 13px;
-    }
+    .chat-footer input:focus { border-color: #3b82f6; }
+    .chat-footer button { width: auto; padding: 0 14px; border-radius: 9999px; font-size: 13px; }
 
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(4px); }
@@ -284,7 +271,9 @@
 
     <fieldset id="game-board">
         <h1 id="winner-text"></h1>
+        <div id="score-text"></div>
         <div id="turn-indicator">En attente des joueurs...</div>
+        
         <div class="grid">
             <button class="cell" data-index="0"></button>
             <button class="cell" data-index="1"></button>
@@ -296,8 +285,9 @@
             <button class="cell" data-index="7"></button>
             <button class="cell" data-index="8"></button>
         </div>
+
+        <button id="restart-button" style="display: none;">Rejouer</button>
         
-        <!-- INTÉGRATION DE LA CHATBOX ICI -->
         <div class="chat-container">
             <div class="chat-header">
                 <span class="status-dot"></span>
@@ -325,19 +315,18 @@
         const turnIndicator = document.getElementById("turn-indicator");
         const winnerText = document.getElementById("winner-text");
         const cells = document.querySelectorAll(".cell");
+        const restartButton = document.getElementById("restart-button");
+        const scoreText = document.getElementById("score-text");
 
-        // Éléments de la chatbox
         const chatMessages = document.getElementById("chat-messages");
         const chatForm = document.getElementById("chat-form");
         const chatInput = document.getElementById("chat-input");
 
-        // Initialiser la connexion
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(HUB_URL)
             .withAutomaticReconnect()
             .build();
 
-        // Écouter si un adversaire rejoint la salle créée
         connection.on("PlayerJoined", (opponentConnectionId) => {
             statusDisplay.textContent = `Un adversaire s'est connecté ! (${opponentConnectionId})`;
             statusDisplay.style.color = "green";
@@ -377,35 +366,61 @@
         connection.on("TurnPlayed", (data) => {
             const cell = document.querySelector(`.cell[data-index="${data.cell}"]`);
             cell.textContent = data.symbol;
+            cell.setAttribute("data-symbol", data.symbol); 
         });
 
         connection.on("GameOver", (data) => {
-            console.log("Game over, winner : " + data + " my symbol : " + mySymbol);
-            if(data == "Draw"){
+            console.log("Game over, winner : " + data.winner + " my symbol : " + mySymbol);
+            if(data.winner == "Draw"){
                 winnerText.textContent = "Egalité !"
             }else{
-                if(data == mySymbol){
+                if(data.winner == mySymbol){
                     winnerText.textContent = "Vous avez gagné !";
                 }else{
                     winnerText.textContent = "Vous avez perdu !";
                 }
             }
+
+            if(mySymbol == "X"){
+                restartButton.style.display = "block";
+            }
+
+            scoreText.style.display = "block";
+            if (mySymbol === "X") {
+                scoreText.innerHTML = `<strong>SCORE</strong><br>X (vous) : ${data.hostScore} &nbsp;|&nbsp; O : ${data.opponentScore}`;
+            } else {
+                scoreText.innerHTML = `<strong>SCORE</strong><br>X : ${data.hostScore} &nbsp;|&nbsp; O (vous) : ${data.opponentScore}`;
+            }
         });
 
-        // Démarrer la connexion
+        connection.on("RestartGame", (data) => {
+            document.querySelectorAll(".cell").forEach(cell => {
+                cell.textContent = "";
+                cell.disabled = false;
+                cell.removeAttribute("data-symbol"); 
+            });
+
+            restartButton.style.display = "none";
+            winnerText.textContent = "";
+
+            if (connection.connectionId == data.currentTurn) {
+                turnIndicator.textContent = "C'est à votre tour !";
+                turnIndicator.style.color = "green";
+            } else {
+                turnIndicator.textContent = "Au tour de l'adversaire...";
+                turnIndicator.style.color = "gray";
+            }
+        });
+
         connection.start()
-            .then(() => {
-                btnCreate.textContent = "Créer une partie";
-            })
+            .then(() => { btnCreate.textContent = "Créer une partie"; })
             .catch(err => {
                 console.error("Erreur de connexion SignalR :", err);
                 btnCreate.textContent = "Erreur de connexion";
             });
 
-        // Appel de CreateGame lors du clic
         btnCreate.addEventListener("click", async () => {
             try {
-                // invoke retourne directement le string renvoyé par le Hub C#
                 const gameId = await connection.invoke("CreateGame");
                 codeDisplay.textContent = `Code de la partie : ${gameId}`;
                 statusDisplay.textContent = "En attente d'un adversaire...";
@@ -420,28 +435,25 @@
         btnJoin.addEventListener("click", async () => {
             try{
                 res = await connection.invoke("JoinGame", codeInput.value);
-                if(!res)
-                {
+                if(!res) {
                     statusDisplay.textContent = `Aucune partie avec le code ${codeInput.value.toUpperCase()} trouvée`;
                 }
-            } catch (err) {
-                console.error("Erreur lors du join :", err);
-            }
+            } catch (err) { console.error("Erreur lors du join :", err); }
         });
 
-        // Gestion du clic sur les cases du Morpion
+        restartButton.addEventListener("click", async () => {
+            try{ await connection.invoke("RestartGame"); } 
+            catch (err) { console.error("Erreur lors du restart :", err); }
+        });
+
         cells.forEach(cell => {
             cell.addEventListener("click", async () => {
                 const cellIndex = parseInt(cell.getAttribute("data-index"), 10);
-                try {
-                    await connection.invoke("PlayTurn", cellIndex);
-                } catch (err) {
-                    console.error("Erreur lors du coup :", err);
-                }
+                try { await connection.invoke("PlayTurn", cellIndex); } 
+                catch (err) { console.error("Erreur lors du coup :", err); }
             });
         });
 
-        /* --- LOGIQUE DE LA CHATBOX --- */
         function addChatMessage(text, type = 'outgoing') {
             const msg = document.createElement("div");
             msg.className = `message ${type}`;
@@ -450,29 +462,21 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // Soumission du formulaire de chat
         chatForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const text = chatInput.value.trim();
             if (!text) return;
 
-            // Affichage local du message envoyé
             addChatMessage(text, "outgoing");
             chatInput.value = "";
 
-            try {
-                console.log("Send message : " + text);
-                await connection.invoke("SendMessage", text);
-            } catch (err) {
-                console.error(err);
-            } 
-             
+            try { await connection.invoke("SendMessage", text); } 
+            catch (err) { console.error(err); } 
         });
 
         connection.on("ReceiveMessage", (message) => {
             addChatMessage(message, "incoming");
         });
-         
     </script>
 </body>
 </html>
