@@ -32,6 +32,7 @@ namespace server.Models
             
             Board = new string?[9];
             CurrentTurn = _startingPlayerId == HostId ? OpponentId! : HostId;
+            _startingPlayerId = CurrentTurn;
             IsGameOver = false;
             Winner = null;
         }
